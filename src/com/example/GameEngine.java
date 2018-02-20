@@ -32,27 +32,34 @@ public class GameEngine {
 
     private static void runGame() {
         resetRound();
+        pickFirstPlayer();
+
+        if(playerTwo.isFirst()) {
+            switchPlayers();
+        }
+
         while(!gameFinished(playerOne.getPoints(), playerTwo.getPoints())) {
-            //resetRound(); should be called when a player knocks
-            pickFirstPlayer();
-
-            if(playerTwo.isFirst()) {
-                switchPlayers();
-            }
-
             Card desiredCard;
+            Card undesiredCard;
             ArrayList<Card> newPlayerOneHand = playerOne.getHand();
+            boolean tookFromDiscardPile;
 
             if(playerOne.getPlayerStrategy().willTakeTopDiscard(
                     discardPile.get(discardPile.size() - 1))) {
                 desiredCard = discardPile.get(discardPile.size() - 1);
+                tookFromDiscardPile = true;
             } else {
                 desiredCard = deck.get(0);
+                tookFromDiscardPile = false;
             }
 
+            undesiredCard = playerOne.getPlayerStrategy().drawAndDiscard(desiredCard);
+
             newPlayerOneHand.add(desiredCard);
-            newPlayerOneHand.remove(playerOne.getPlayerStrategy().drawAndDiscard(desiredCard));
+            newPlayerOneHand.remove(undesiredCard);
             playerOne.setHand(newPlayerOneHand);
+            playerTwo.getPlayerStrategy().opponentEndTurnFeedback(
+                    tookFromDiscardPile, discardPile.get(discardPile.size() - 1), undesiredCard);
 
             discardPile.remove(desiredCard);
 
@@ -65,13 +72,19 @@ public class GameEngine {
             if(playerTwo.getPlayerStrategy().willTakeTopDiscard(
                     discardPile.get(discardPile.size() - 1))) {
                 desiredCard = discardPile.get(discardPile.size() - 1);
+                tookFromDiscardPile = true;
             } else {
                 desiredCard = deck.get(0);
+                tookFromDiscardPile = false;
             }
 
+            undesiredCard = playerTwo.getPlayerStrategy().drawAndDiscard(desiredCard);
+
             newPlayerTwoHand.add(desiredCard);
-            newPlayerTwoHand.remove(playerTwo.getPlayerStrategy().drawAndDiscard(desiredCard));
+            newPlayerTwoHand.remove(undesiredCard);
             playerTwo.setHand(newPlayerTwoHand);
+            playerOne.getPlayerStrategy().opponentEndTurnFeedback(
+                    tookFromDiscardPile, discardPile.get(discardPile.size() - 1), undesiredCard);
 
             discardPile.remove(desiredCard);
 
@@ -79,10 +92,10 @@ public class GameEngine {
                 handleKnock(playerTwo, playerOne);
             }
 
-            if(playerTwo.isFirst()) {
-                switchPlayers();
-            }
+        }
 
+        if(playerTwo.isFirst()) {
+            switchPlayers();
         }
     }
 
@@ -209,8 +222,5 @@ public class GameEngine {
 
         return deadwoodCount;
     }
-
-
-
 
 }

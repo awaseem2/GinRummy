@@ -2,9 +2,14 @@ package com.example;
 
 import com.example.PlayerStrategy;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FirstPlayerStrategy implements PlayerStrategy {
+    private List<Card> hand = new ArrayList<>();
+    private List<Meld> melds = new ArrayList<>();
 
     /**
      * Called by the game engine for each player at the beginning of each round to receive and
@@ -14,7 +19,7 @@ public class FirstPlayerStrategy implements PlayerStrategy {
      */
     @Override
     public void receiveInitialHand(List<Card> hand) {
-
+        this.hand = hand;
     }
 
     /**
@@ -84,7 +89,128 @@ public class FirstPlayerStrategy implements PlayerStrategy {
      */
     @Override
     public List<Meld> getMelds() {
+        Collections.sort(hand);
+
+        return melds;
+    }
+
+    private void findMelds() {
+        ArrayList<Card> uncheckedHand = new ArrayList<>(hand);
+        Collections.sort(uncheckedHand);
+        melds.addAll(findSets(uncheckedHand));
+        uncheckedHand = removeMelds(uncheckedHand, melds);
+
+
+    }
+
+    private List<Meld> findSets(List<Card> hand) {
+        ArrayList<Meld> allSets = new ArrayList<>();
+
+        int i = 0;
+        while(i < hand.size() - 3) {
+            Card currentCard = hand.get(i);
+            Card[] possibleSet = {currentCard, hand.get(i + 1), hand.get(i + 2)};
+            if(Meld.buildSetMeld(possibleSet) != null) {
+                SetMeld setMeld = Meld.buildSetMeld(possibleSet);
+                i += 2;
+                while(i < hand.size()) {
+                    if(setMeld.canAppendCard(hand.get(i))) {
+                        setMeld.appendCard(hand.get(i));
+                    }
+                    i++;
+                }
+
+                allSets.add(setMeld);
+            } else {
+                i++;
+            }
+        }
+
+        return allSets;
+    }
+
+    private static ArrayList<Card> removeMelds(ArrayList<Card> hand, List<Meld> melds) {
+        ArrayList<Card> newHand = new ArrayList<>(hand);
+
+        for(Meld meld : melds) {
+            for(Card card : meld.getCards()) {
+                newHand.remove(card);
+            }
+        }
+
+        return newHand;
+    }
+
+    private List<Meld> findRuns(List<Card> hand) {
+        List<Card> diamonds = separateBySuit(hand, "diamonds");
+        List<Card> hearts = separateBySuit(hand, "hearts");
+        List<Card> spades = separateBySuit(hand, "spades");
+        List<Card> clubs = separateBySuit(hand, "clubs");
+
+        ArrayList<Card> uncheckedHand = new ArrayList<>(hand);
+        Collections.sort(uncheckedHand);
+
+        melds.addAll(findRuns(diamonds));
+        
+        uncheckedHand = removeMelds(uncheckedHand, melds);
+
         return null;
+    }
+
+    private List<Card> separateBySuit(List<Card> hand, String suit) {
+        List<Card> filteredHand = new ArrayList<>();
+        for(Card card : hand) {
+            switch (suit) {
+                case "diamonds":
+                    if(card.getSuit().equals(Card.CardSuit.DIAMONDS)) {
+                        filteredHand.add(card);
+                    }
+                    break;
+                case "hearts":
+                    if(card.getSuit().equals(Card.CardSuit.HEARTS)) {
+                        filteredHand.add(card);
+                    }
+                    break;
+                case "spades":
+                    if(card.getSuit().equals(Card.CardSuit.SPADES)) {
+                        filteredHand.add(card);
+                    }
+                    break;
+                case "clubs":
+                    if(card.getSuit().equals(Card.CardSuit.CLUBS)) {
+                        filteredHand.add(card);
+                    }
+                    break;
+            }
+        }
+
+        return filteredHand;
+    }
+
+    private List<Meld> fildMeldsPerSuit(List<Card> hand) {
+        ArrayList<Meld> allRuns = new ArrayList<>();
+
+        int i = 0;
+        while(i < hand.size() - 3) {
+            Card currentCard = hand.get(i);
+            Card[] possibleRun = {currentCard, hand.get(i + 1), hand.get(i + 2)};
+            if(Meld.buildRunMeld(possibleRun) != null) {
+                RunMeld runMeld = Meld.buildRunMeld(possibleRun);
+                i += 2;
+                while(i < hand.size()) {
+                    if(runMeld.canAppendCard(hand.get(i))) {
+                        runMeld.appendCard(hand.get(i));
+                    }
+                    i++;
+                }
+
+                allRuns.add(runMeld);
+            } else {
+                i++;
+            }
+        }
+
+        return allRuns;
     }
 
     /**
