@@ -52,19 +52,6 @@ public class GameEngineTest {
     }
 
     @Test
-    public void getDeadwoodCards() {
-        gameEngine.getPlayerOne().setHand(worseHand);
-        assertEquals(worseHand, gameEngine.getDeadwoodCards(gameEngine.getPlayerOne()));
-    }
-
-    @Test
-    public void deadwoodCount() {
-        gameEngine.getPlayerOne().setHand(worseHand);
-        assertEquals(gameEngine.deadwoodCount(gameEngine.getDeadwoodCards(
-                gameEngine.getPlayerOne())), 30);
-    }
-
-    @Test
     public void playerWins() {
         gameEngine.getPlayerOne().setPoints(50);
         gameEngine.runGame();

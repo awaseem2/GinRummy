@@ -189,21 +189,24 @@ public class GameEngine {
      * @param opponent the player who did no call knock.
      */
     public void handleKnock(Player knocker, Player opponent) {
-        int knockerDeadwoodCount = deadwoodCount(getDeadwoodCards(knocker));
+        int knockerDeadwoodCount = CardManager.deadwoodCount(
+                CardManager.getDeadwoodCards(knocker));
         int opponentDeadwoodCount;
         int differenceInDeadwood;
 
         if(knockerDeadwoodCount == 0) {
-            opponentDeadwoodCount = deadwoodCount(getDeadwoodCards(opponent));
+            opponentDeadwoodCount = CardManager.deadwoodCount(
+                    CardManager.getDeadwoodCards(opponent));
             differenceInDeadwood = Math.abs(knockerDeadwoodCount - opponentDeadwoodCount);
             knocker.setPoints(knocker.getPoints() + 25 + differenceInDeadwood);
             return;
         }
 
-        handleAppends(knocker, opponent);
+        CardManager.handleAppends(knocker, opponent);
 
         if(knockerDeadwoodCount > 0 && knockerDeadwoodCount <= 10) {
-            opponentDeadwoodCount = deadwoodCount(getDeadwoodCards(opponent));
+            opponentDeadwoodCount = CardManager.deadwoodCount(
+                    CardManager.getDeadwoodCards(opponent));
             differenceInDeadwood = knockerDeadwoodCount - opponentDeadwoodCount;
             if(differenceInDeadwood >= 0) {
                 knocker.setPoints(knocker.getPoints() + differenceInDeadwood);
@@ -215,64 +218,6 @@ public class GameEngine {
 
         resetRound();
 
-    }
-
-    /**
-     * Adds the opponent's deadwood cards to the knocker's melds where applicable.
-     *
-     * @param knocker the player who called knock.
-     * @param opponent the player who did not call knock.
-     */
-    public void handleAppends(Player knocker, Player opponent) {
-        ArrayList<Card> opponentDeadwoodCards = getDeadwoodCards(knocker);
-        ArrayList<Card> newHand = new ArrayList<>(opponent.getHand());
-
-        for(Meld meld : knocker.getMelds()) {
-            for(Card card : opponentDeadwoodCards) {
-                if(meld.canAppendCard(card)) {
-                    meld.appendCard(card);
-                    newHand.remove(card);
-                }
-            }
-        }
-
-        opponent.setHand(newHand);
-    }
-
-    /**
-     * Returns all the cards that are not in melds.
-     *
-     * @param player the player whose deadwood cards we'd like to receive.
-     * @return an ArrayList of Cards which contains all of the player's deadwood cards.
-     */
-    public ArrayList<Card> getDeadwoodCards(Player player) {
-        ArrayList<Card> deadwoodCards = new ArrayList<>(player.getHand());
-        List<Meld> meldCards = player.getMelds();
-        for(Meld meld : meldCards) {
-            for(Card card : meld.getCards()) {
-                if(deadwoodCards.contains(card)) {
-                    deadwoodCards.remove(card);
-                }
-            }
-        }
-
-        return deadwoodCards;
-
-    }
-
-    /**
-     * The sum of the values of each deadwood card in a player' hand.
-     *
-     * @param deadwoodCards the cards that are not in any melds.
-     * @return an int of the value of all the deadwood cards.
-     */
-    public int deadwoodCount(ArrayList<Card> deadwoodCards) {
-        int deadwoodCount = 0;
-        for(Card card : deadwoodCards) {
-            deadwoodCount += card.getPointValue();
-        }
-
-        return deadwoodCount;
     }
 
     /**
