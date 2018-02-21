@@ -3,6 +3,7 @@ package com.example;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -45,7 +46,10 @@ public class GameEngineTest {
     public void distributeCards() {
         gameEngine.shuffleDeck();
         gameEngine.distributeCards();
-        gameEngine.initializePlayerStrategies();
+        gameEngine.getPlayerOne().getPlayerStrategy().receiveInitialHand(
+                gameEngine.getPlayerOne().getHand());
+        gameEngine.getPlayerTwo().getPlayerStrategy().receiveInitialHand(
+                gameEngine.getPlayerTwo().getHand());
         assertTrue(gameEngine.getPlayerOne().getHand().size() == 10);
         assertTrue(gameEngine.getPlayerTwo().getHand().size() == 10);
         assertFalse(gameEngine.getPlayerOne().getHand().equals(gameEngine.getPlayerTwo().getHand()));
