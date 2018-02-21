@@ -5,11 +5,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class GameEngine {
-    private static Player playerOne;
-    private static Player playerTwo;
+    private Player playerOne;
+    private Player playerTwo;
     private int gamesPerCompetition;
-    private static ArrayList<Card> deck = new ArrayList<>();
-    private static ArrayList<Card> discardPile = new ArrayList<>();
+    private ArrayList<Card> deck = new ArrayList<>();
+    private ArrayList<Card> discardPile = new ArrayList<>();
 
     public GameEngine(PlayerStrategy firstPlayerStrategy, PlayerStrategy secondPlayerStrategy,
                       int gamesPerCompetition) {
@@ -18,6 +18,7 @@ public class GameEngine {
         playerTwo = new Player(secondPlayerStrategy);
     }
 
+    /** Starts a new game until the competition is over. */
     public void runCompetition() {
         int gamesCompleted = 0;
 
@@ -25,12 +26,14 @@ public class GameEngine {
             playerOne.setPoints(0);
             playerTwo.setPoints(0);
             runGame();
-            gamesCompleted++;
 
+            gamesCompleted++;
         }
     }
 
-    private static void runGame() {
+    /** Starts new rounds until one of the players gets to 50 points,
+     * in which case, the game ends. */
+    public void runGame() {
         resetRound();
         pickFirstPlayer();
 
@@ -41,12 +44,13 @@ public class GameEngine {
         while(!gameFinished(playerOne.getPoints(), playerTwo.getPoints())) {
             Card desiredCard;
             Card undesiredCard;
-            ArrayList<Card> newPlayerOneHand = playerOne.getHand();
+            ArrayList<Card> newPlayerOneHand = new ArrayList<>(playerOne.getHand());
             boolean tookFromDiscardPile;
 
             if(playerOne.getPlayerStrategy().willTakeTopDiscard(
                     discardPile.get(discardPile.size() - 1))) {
                 desiredCard = discardPile.get(discardPile.size() - 1);
+                discardPile.remove(desiredCard);
                 tookFromDiscardPile = true;
             } else {
                 desiredCard = deck.get(0);
@@ -55,23 +59,23 @@ public class GameEngine {
 
             undesiredCard = playerOne.getPlayerStrategy().drawAndDiscard(desiredCard);
 
+            discardPile.add(undesiredCard);
             newPlayerOneHand.add(desiredCard);
             newPlayerOneHand.remove(undesiredCard);
             playerOne.setHand(newPlayerOneHand);
             playerTwo.getPlayerStrategy().opponentEndTurnFeedback(
                     tookFromDiscardPile, discardPile.get(discardPile.size() - 1), undesiredCard);
 
-            discardPile.remove(desiredCard);
-
             if(playerOne.getPlayerStrategy().knock()) {
                 handleKnock(playerOne, playerTwo);
             }
 
-            ArrayList<Card> newPlayerTwoHand = playerTwo.getHand();
+            ArrayList<Card> newPlayerTwoHand = new ArrayList<>(playerTwo.getHand());
 
             if(playerTwo.getPlayerStrategy().willTakeTopDiscard(
                     discardPile.get(discardPile.size() - 1))) {
                 desiredCard = discardPile.get(discardPile.size() - 1);
+                discardPile.remove(desiredCard);
                 tookFromDiscardPile = true;
             } else {
                 desiredCard = deck.get(0);
@@ -80,13 +84,12 @@ public class GameEngine {
 
             undesiredCard = playerTwo.getPlayerStrategy().drawAndDiscard(desiredCard);
 
+            discardPile.add(undesiredCard);
             newPlayerTwoHand.add(desiredCard);
             newPlayerTwoHand.remove(undesiredCard);
             playerTwo.setHand(newPlayerTwoHand);
             playerOne.getPlayerStrategy().opponentEndTurnFeedback(
                     tookFromDiscardPile, discardPile.get(discardPile.size() - 1), undesiredCard);
-
-            discardPile.remove(desiredCard);
 
             if(playerTwo.getPlayerStrategy().knock()) {
                 handleKnock(playerTwo, playerOne);
@@ -94,27 +97,46 @@ public class GameEngine {
 
         }
 
+        if(playerOne.getPoints() >= 50) {
+            playerOne.setWins(playerOne.getWins() + 1);
+        } else {
+            playerTwo.setWins(playerTwo.getWins() + 1);
+        }
+
+
         if(playerTwo.isFirst()) {
             switchPlayers();
         }
     }
 
-    private static boolean gameFinished(int playerOnePoints, int playerTwoPoints) {
+    /** Decides whether a game is finished based on if one player or the other
+     * has gotten 50 or more points
+     *
+     * @param playerOnePoints the amount of points the first player has.
+     * @param playerTwoPoints the amount of points the second player has.
+     * @return a boolean value for whether the current game is over.
+     */
+    public boolean gameFinished(int playerOnePoints, int playerTwoPoints) {
         return (playerOnePoints >= 50 || playerTwoPoints >= 50);
     }
 
-    private static void resetRound() {
+    /** Initializes a new round by shuffling the deck, distributing a new hand to each player,
+     * and initializing the player strategies based on that hand. */
+    public void resetRound() {
         shuffleDeck();
         distributeCards();
         initializePlayerStrategies();
     }
 
-    private static void shuffleDeck() {
+    /** Shuffles the deck. */
+    public void shuffleDeck() {
         deck = new ArrayList<>(Card.getAllCards());
         Collections.shuffle(deck);
     }
 
-    private static void distributeCards() {
+    /** Gives each player 10 cards each, in an alternating fashion. Then adds the first card on
+     * the top of the deck to the discard pile. */
+    public void distributeCards() {
         ArrayList<Card> playerOneHand = new ArrayList<>();
         ArrayList<Card> playerTwoHand = new ArrayList<>();
         discardPile.clear();
@@ -132,12 +154,15 @@ public class GameEngine {
         deck.remove(0);
     }
 
-    private static void initializePlayerStrategies() {
+    /** Initializes each player's hand in player strategy. */
+    public void initializePlayerStrategies() {
         playerOne.initializePlayerStrategy();
         playerTwo.initializePlayerStrategy();
     }
 
-    private static void pickFirstPlayer() {
+    /** Chooses the first player randomly by choosing between 1 and 2. If it's 1, player one goes
+     * first. If it's 2, player two goes first. */
+    public void pickFirstPlayer() {
         int temp = (Math.random() <= 0.5) ? 1 : 2;
         if(temp == 1) {
             playerOne.setIsFirst(true);
@@ -148,13 +173,20 @@ public class GameEngine {
         }
     }
 
-    private static void switchPlayers() {
+    /** If player two is going first, the player objects are switched to make runGame() always
+     * use 'PlayerOne' for the player who goes first. */
+    public void switchPlayers() {
         Player temp = new Player(playerOne);
         playerOne = playerTwo;
         playerTwo = temp;
     }
 
-    private static void handleKnock(Player knocker, Player opponent) {
+    /** Awards points accordingly based on the deadwood count of each player.
+     *
+     * @param knocker the player who called knock.
+     * @param opponent the player who did no call knock.
+     */
+    public void handleKnock(Player knocker, Player opponent) {
         int knockerDeadwoodCount = deadwoodCount(getDeadwoodCards(knocker));
         int opponentDeadwoodCount;
         int differenceInDeadwood;
@@ -183,7 +215,12 @@ public class GameEngine {
 
     }
 
-    private static void handleAppends(Player knocker, Player opponent) {
+    /** Adds the opponent's deadwood cards to the knocker's melds where applicable.
+     *
+     * @param knocker the player who called knock.
+     * @param opponent the player who did not call knock.
+     */
+    public void handleAppends(Player knocker, Player opponent) {
         ArrayList<Card> opponentDeadwoodCards = getDeadwoodCards(knocker);
         ArrayList<Card> newHand = new ArrayList<>(opponent.getHand());
 
@@ -199,7 +236,12 @@ public class GameEngine {
         opponent.setHand(newHand);
     }
 
-    private static ArrayList<Card> getDeadwoodCards(Player player) {
+    /** Returns all the cards that are not in melds.
+     *
+     * @param player the player whose deadwood cards we'd like to receive.
+     * @return an ArrayList of Cards which contains all of the player's deadwood cards.
+     */
+    public ArrayList<Card> getDeadwoodCards(Player player) {
         ArrayList<Card> deadwoodCards = new ArrayList<>(player.getHand());
         List<Meld> meldCards = player.getMelds();
         for(Meld meld : meldCards) {
@@ -214,7 +256,12 @@ public class GameEngine {
 
     }
 
-    private static int deadwoodCount(ArrayList<Card> deadwoodCards) {
+    /** The sum of the values of each deadwood card in a player' hand.
+     *
+     * @param deadwoodCards the cards that are not in any melds.
+     * @return an int of the value of all the deadwood cards.
+     */
+    public int deadwoodCount(ArrayList<Card> deadwoodCards) {
         int deadwoodCount = 0;
         for(Card card : deadwoodCards) {
             deadwoodCount += card.getPointValue();
@@ -223,4 +270,20 @@ public class GameEngine {
         return deadwoodCount;
     }
 
+    /** Provides the amount of games a player has won.
+     *
+     * @param player the player whose win count we'd like.
+     * @return an int of the number of games won.
+     */
+    public int playerWins(Player player) {
+        return player.getWins();
+    }
+
+    public Player getPlayerOne() {
+        return playerOne;
+    }
+
+    public Player getPlayerTwo() {
+        return playerTwo;
+    }
 }

@@ -1,8 +1,5 @@
 package com.example;
 
-import com.example.PlayerStrategy;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +28,7 @@ public class FirstPlayerStrategy implements PlayerStrategy {
      */
     @Override
     public boolean willTakeTopDiscard(Card card) {
-        return false;
+        return card.getPointValue() < getHighestDeadwood(getDeadwoodCards()).getPointValue();
     }
 
     /**
@@ -43,7 +40,7 @@ public class FirstPlayerStrategy implements PlayerStrategy {
      */
     @Override
     public Card drawAndDiscard(Card drawnCard) {
-        return null;
+        return getHighestDeadwood(getDeadwoodCards());
     }
 
     /**
@@ -54,6 +51,9 @@ public class FirstPlayerStrategy implements PlayerStrategy {
      */
     @Override
     public boolean knock() {
+        if(deadwoodCount(getDeadwoodCards()) <= 10) {
+            return true;
+        }
         return false;
     }
 
@@ -89,20 +89,41 @@ public class FirstPlayerStrategy implements PlayerStrategy {
      */
     @Override
     public List<Meld> getMelds() {
-        Collections.sort(hand);
-
+        findMelds();
         return melds;
     }
 
+    /** Finds all the melds of sets and runs in the player's hand
+     * and appends them to the melds list. */
     private void findMelds() {
+
         ArrayList<Card> uncheckedHand = new ArrayList<>(hand);
         Collections.sort(uncheckedHand);
         melds.addAll(findSets(uncheckedHand));
-        uncheckedHand = removeMelds(uncheckedHand, melds);
+        uncheckedHand = removeMelds(uncheckedHand);
 
+        List<Card> diamonds = separateBySuit(uncheckedHand, "diamonds");
+        melds.addAll(findRuns(diamonds));
+        uncheckedHand = removeMelds(uncheckedHand);
+
+        List<Card> hearts = separateBySuit(uncheckedHand, "hearts");
+        melds.addAll(findRuns(hearts));
+        uncheckedHand = removeMelds(uncheckedHand);
+
+        List<Card> spades = separateBySuit(uncheckedHand, "spades");
+        melds.addAll(findRuns(spades));
+        uncheckedHand = removeMelds(uncheckedHand);
+
+        List<Card> clubs = separateBySuit(uncheckedHand, "clubs");
+        melds.addAll(findRuns(clubs));
 
     }
 
+    /** Identifies all of the sets in a player's hand.
+     *
+     * @param hand the player's cards.
+     * @return A List of Meld for the sets found.
+     */
     private List<Meld> findSets(List<Card> hand) {
         ArrayList<Meld> allSets = new ArrayList<>();
 
@@ -129,7 +150,12 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return allSets;
     }
 
-    private static ArrayList<Card> removeMelds(ArrayList<Card> hand, List<Meld> melds) {
+    /** Removes the melds from the cards that are being checked.
+     *
+     * @param hand the cards that are being checked for melds.
+     * @return an ArrayList of Card that contains only the cards that are not in melds.
+     */
+    private ArrayList<Card> removeMelds(ArrayList<Card> hand) {
         ArrayList<Card> newHand = new ArrayList<>(hand);
 
         for(Meld meld : melds) {
@@ -141,22 +167,12 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return newHand;
     }
 
-    private List<Meld> findRuns(List<Card> hand) {
-        List<Card> diamonds = separateBySuit(hand, "diamonds");
-        List<Card> hearts = separateBySuit(hand, "hearts");
-        List<Card> spades = separateBySuit(hand, "spades");
-        List<Card> clubs = separateBySuit(hand, "clubs");
-
-        ArrayList<Card> uncheckedHand = new ArrayList<>(hand);
-        Collections.sort(uncheckedHand);
-
-        melds.addAll(findRuns(diamonds));
-        
-        uncheckedHand = removeMelds(uncheckedHand, melds);
-
-        return null;
-    }
-
+    /** Provides a list of cards with the same specified suit.
+     *
+     * @param hand the cards needed to be filtered.
+     * @param suit the desired suit to filter by.
+     * @return A List of Card that contains cards in the hand but are of the same specified suit.
+     */
     private List<Card> separateBySuit(List<Card> hand, String suit) {
         List<Card> filteredHand = new ArrayList<>();
         for(Card card : hand) {
@@ -187,7 +203,12 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return filteredHand;
     }
 
-    private List<Meld> fildMeldsPerSuit(List<Card> hand) {
+    /** Identifies the runs in a hand.
+     *
+     * @param hand the unchecked cards in a player's hand.
+     * @return a List of Meld that contains the runs in the player's hand.
+     */
+    private List<Meld> findRuns(List<Card> hand) {
         ArrayList<Meld> allRuns = new ArrayList<>();
 
         int i = 0;
@@ -212,6 +233,55 @@ public class FirstPlayerStrategy implements PlayerStrategy {
 
         return allRuns;
     }
+
+    /** Parses the player's deadwood cards and finds the card with the highest value
+     *
+     * @param deadwoodCards the cards that are not in melds.
+     * @return a Card that has the highest value of all the deadwood cards.
+     */
+    private Card getHighestDeadwood(ArrayList<Card> deadwoodCards) {
+        Card highestDeadwood = deadwoodCards.get(0);
+
+        for(Card card : deadwoodCards) {
+            if(card.getPointValue() > highestDeadwood.getPointValue()) {
+                highestDeadwood = card;
+            }
+        }
+
+        return highestDeadwood;
+    }
+
+    /** Returns all the cards that are not in melds. */
+    private ArrayList<Card> getDeadwoodCards() {
+        ArrayList<Card> deadwoodCards = new ArrayList<>(hand);
+        List<Meld> meldCards = melds;
+        for(Meld meld : meldCards) {
+            for(Card card : meld.getCards()) {
+                if(deadwoodCards.contains(card)) {
+                    deadwoodCards.remove(card);
+                }
+            }
+        }
+
+        return deadwoodCards;
+
+    }
+
+    /** The sum of the values of each deadwood card in a player' hand.
+     *
+     * @param deadwoodCards the cards that are not in any melds.
+     * @return an int of the value of all the deadwood cards.
+     */
+    public int deadwoodCount(ArrayList<Card> deadwoodCards) {
+        int deadwoodCount = 0;
+        for(Card card : deadwoodCards) {
+            deadwoodCount += card.getPointValue();
+        }
+
+        return deadwoodCount;
+    }
+
+
 
     /**
      * Called by the game engine to allow this player strategy to reset its internal state before
