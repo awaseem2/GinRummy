@@ -104,6 +104,7 @@ public class StubbornPlayerStrategy implements PlayerStrategy {
     /** Finds all the melds of sets and runs in the player's hand
      *  and appends them to the melds list. */
     private void findMelds() {
+
         ArrayList<Card> uncheckedHand = new ArrayList<>(hand);
         Collections.sort(uncheckedHand);
         melds.addAll(findSets(uncheckedHand));
@@ -136,17 +137,19 @@ public class StubbornPlayerStrategy implements PlayerStrategy {
         ArrayList<Meld> allSets = new ArrayList<>();
 
         int i = 0;
-        while(i < hand.size() - 3) {
+        while(i < hand.size() - 2) {
             Card currentCard = hand.get(i);
             Card[] possibleSet = {currentCard, hand.get(i + 1), hand.get(i + 2)};
             if(Meld.buildSetMeld(possibleSet) != null) {
                 SetMeld setMeld = Meld.buildSetMeld(possibleSet);
-                i += 2;
+                i += 3;
                 while(i < hand.size()) {
                     if(setMeld.canAppendCard(hand.get(i))) {
                         setMeld.appendCard(hand.get(i));
+                        i++;
+                    } else {
+                        break;
                     }
-                    i++;
                 }
 
                 allSets.add(setMeld);
@@ -223,17 +226,19 @@ public class StubbornPlayerStrategy implements PlayerStrategy {
         ArrayList<Meld> allRuns = new ArrayList<>();
 
         int i = 0;
-        while(i < hand.size() - 3) {
+        while(i < hand.size() - 2) {
             Card currentCard = hand.get(i);
             Card[] possibleRun = {currentCard, hand.get(i + 1), hand.get(i + 2)};
             if(Meld.buildRunMeld(possibleRun) != null) {
                 RunMeld runMeld = Meld.buildRunMeld(possibleRun);
-                i += 2;
+                i += 3;
                 while(i < hand.size()) {
                     if(runMeld.canAppendCard(hand.get(i))) {
                         runMeld.appendCard(hand.get(i));
+                        i++;
+                    } else {
+                        break;
                     }
-                    i++;
                 }
 
                 allRuns.add(runMeld);
@@ -244,8 +249,6 @@ public class StubbornPlayerStrategy implements PlayerStrategy {
 
         return allRuns;
     }
-
-
 
     /**
      * Called by the game engine to allow this player strategy to reset its internal state before

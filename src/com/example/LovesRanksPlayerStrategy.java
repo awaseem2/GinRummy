@@ -143,17 +143,19 @@ public class LovesRanksPlayerStrategy implements PlayerStrategy {
         ArrayList<Meld> allSets = new ArrayList<>();
 
         int i = 0;
-        while(i < hand.size() - 3) {
+        while(i < hand.size() - 2) {
             Card currentCard = hand.get(i);
             Card[] possibleSet = {currentCard, hand.get(i + 1), hand.get(i + 2)};
             if(Meld.buildSetMeld(possibleSet) != null) {
                 SetMeld setMeld = Meld.buildSetMeld(possibleSet);
-                i += 2;
+                i += 3;
                 while(i < hand.size()) {
                     if(setMeld.canAppendCard(hand.get(i))) {
                         setMeld.appendCard(hand.get(i));
+                        i++;
+                    } else {
+                        break;
                     }
-                    i++;
                 }
 
                 allSets.add(setMeld);
@@ -230,17 +232,19 @@ public class LovesRanksPlayerStrategy implements PlayerStrategy {
         ArrayList<Meld> allRuns = new ArrayList<>();
 
         int i = 0;
-        while(i < hand.size() - 3) {
+        while(i < hand.size() - 2) {
             Card currentCard = hand.get(i);
             Card[] possibleRun = {currentCard, hand.get(i + 1), hand.get(i + 2)};
             if(Meld.buildRunMeld(possibleRun) != null) {
                 RunMeld runMeld = Meld.buildRunMeld(possibleRun);
-                i += 2;
+                i += 3;
                 while(i < hand.size()) {
                     if(runMeld.canAppendCard(hand.get(i))) {
                         runMeld.appendCard(hand.get(i));
+                        i++;
+                    } else {
+                        break;
                     }
-                    i++;
                 }
 
                 allRuns.add(runMeld);
