@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class FirstPlayerStrategy implements PlayerStrategy {
+public class NormalPlayerStrategy implements PlayerStrategy {
     private List<Card> hand = new ArrayList<>();
     private List<Meld> melds = new ArrayList<>();
 
@@ -82,8 +82,7 @@ public class FirstPlayerStrategy implements PlayerStrategy {
 
     }
 
-    /**
-     * Called by the game engine to allow access the player's current list of Melds.
+    /** Called by the game engine to allow access the player's current list of Melds.
      *
      * @return The player's list of melds.
      */
@@ -94,9 +93,8 @@ public class FirstPlayerStrategy implements PlayerStrategy {
     }
 
     /** Finds all the melds of sets and runs in the player's hand
-     * and appends them to the melds list. */
+     *  and appends them to the melds list. */
     private void findMelds() {
-
         ArrayList<Card> uncheckedHand = new ArrayList<>(hand);
         Collections.sort(uncheckedHand);
         melds.addAll(findSets(uncheckedHand));
@@ -119,7 +117,8 @@ public class FirstPlayerStrategy implements PlayerStrategy {
 
     }
 
-    /** Identifies all of the sets in a player's hand.
+    /**
+     * Identifies all of the sets in a player's hand.
      *
      * @param hand the player's cards.
      * @return A List of Meld for the sets found.
@@ -150,7 +149,8 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return allSets;
     }
 
-    /** Removes the melds from the cards that are being checked.
+    /**
+     * Removes the melds from the cards that are being checked.
      *
      * @param hand the cards that are being checked for melds.
      * @return an ArrayList of Card that contains only the cards that are not in melds.
@@ -167,7 +167,8 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return newHand;
     }
 
-    /** Provides a list of cards with the same specified suit.
+    /**
+     * Provides a list of cards with the same specified suit.
      *
      * @param hand the cards needed to be filtered.
      * @param suit the desired suit to filter by.
@@ -203,7 +204,8 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return filteredHand;
     }
 
-    /** Identifies the runs in a hand.
+    /**
+     * Identifies the runs in a hand.
      *
      * @param hand the unchecked cards in a player's hand.
      * @return a List of Meld that contains the runs in the player's hand.
@@ -234,7 +236,18 @@ public class FirstPlayerStrategy implements PlayerStrategy {
         return allRuns;
     }
 
-    /** Parses the player's deadwood cards and finds the card with the highest value
+    /**
+     * Called by the game engine to allow this player strategy to reset its internal state before
+     * competing it against a new opponent.
+     */
+    @Override
+    public void reset() {
+        this.hand = null;
+        this.melds = null;
+    }
+
+    /**
+     * Parses the player's deadwood cards and finds the card with the highest value
      *
      * @param deadwoodCards the cards that are not in melds.
      * @return a Card that has the highest value of all the deadwood cards.
@@ -267,28 +280,18 @@ public class FirstPlayerStrategy implements PlayerStrategy {
 
     }
 
-    /** The sum of the values of each deadwood card in a player' hand.
+    /**
+     * The sum of the values of each deadwood card in a player' hand.
      *
      * @param deadwoodCards the cards that are not in any melds.
      * @return an int of the value of all the deadwood cards.
      */
-    public int deadwoodCount(ArrayList<Card> deadwoodCards) {
+    private int deadwoodCount(ArrayList<Card> deadwoodCards) {
         int deadwoodCount = 0;
         for(Card card : deadwoodCards) {
             deadwoodCount += card.getPointValue();
         }
 
         return deadwoodCount;
-    }
-
-
-
-    /**
-     * Called by the game engine to allow this player strategy to reset its internal state before
-     * competing it against a new opponent.
-     */
-    @Override
-    public void reset() {
-
     }
 }

@@ -32,7 +32,7 @@ public class GameEngine {
     }
 
     /** Starts new rounds until one of the players gets to 50 points,
-     * in which case, the game ends. */
+     *  in which case, the game ends. */
     public void runGame() {
         resetRound();
         pickFirstPlayer();
@@ -109,7 +109,8 @@ public class GameEngine {
         }
     }
 
-    /** Decides whether a game is finished based on if one player or the other
+    /**
+     * Decides whether a game is finished based on if one player or the other
      * has gotten 50 or more points
      *
      * @param playerOnePoints the amount of points the first player has.
@@ -121,7 +122,7 @@ public class GameEngine {
     }
 
     /** Initializes a new round by shuffling the deck, distributing a new hand to each player,
-     * and initializing the player strategies based on that hand. */
+     *  and initializing the player strategies based on that hand. */
     public void resetRound() {
         shuffleDeck();
         distributeCards();
@@ -135,7 +136,7 @@ public class GameEngine {
     }
 
     /** Gives each player 10 cards each, in an alternating fashion. Then adds the first card on
-     * the top of the deck to the discard pile. */
+     *  the top of the deck to the discard pile. */
     public void distributeCards() {
         ArrayList<Card> playerOneHand = new ArrayList<>();
         ArrayList<Card> playerTwoHand = new ArrayList<>();
@@ -161,7 +162,7 @@ public class GameEngine {
     }
 
     /** Chooses the first player randomly by choosing between 1 and 2. If it's 1, player one goes
-     * first. If it's 2, player two goes first. */
+     *  first. If it's 2, player two goes first. */
     public void pickFirstPlayer() {
         int temp = (Math.random() <= 0.5) ? 1 : 2;
         if(temp == 1) {
@@ -174,14 +175,15 @@ public class GameEngine {
     }
 
     /** If player two is going first, the player objects are switched to make runGame() always
-     * use 'PlayerOne' for the player who goes first. */
+     *  use 'PlayerOne' for the player who goes first. */
     public void switchPlayers() {
         Player temp = new Player(playerOne);
         playerOne = playerTwo;
         playerTwo = temp;
     }
 
-    /** Awards points accordingly based on the deadwood count of each player.
+    /**
+     * Awards points accordingly based on the deadwood count of each player.
      *
      * @param knocker the player who called knock.
      * @param opponent the player who did no call knock.
@@ -215,7 +217,8 @@ public class GameEngine {
 
     }
 
-    /** Adds the opponent's deadwood cards to the knocker's melds where applicable.
+    /**
+     * Adds the opponent's deadwood cards to the knocker's melds where applicable.
      *
      * @param knocker the player who called knock.
      * @param opponent the player who did not call knock.
@@ -236,7 +239,8 @@ public class GameEngine {
         opponent.setHand(newHand);
     }
 
-    /** Returns all the cards that are not in melds.
+    /**
+     * Returns all the cards that are not in melds.
      *
      * @param player the player whose deadwood cards we'd like to receive.
      * @return an ArrayList of Cards which contains all of the player's deadwood cards.
@@ -256,7 +260,8 @@ public class GameEngine {
 
     }
 
-    /** The sum of the values of each deadwood card in a player' hand.
+    /**
+     * The sum of the values of each deadwood card in a player' hand.
      *
      * @param deadwoodCards the cards that are not in any melds.
      * @return an int of the value of all the deadwood cards.
@@ -270,7 +275,8 @@ public class GameEngine {
         return deadwoodCount;
     }
 
-    /** Provides the amount of games a player has won.
+    /**
+     * Provides the amount of games a player has won.
      *
      * @param player the player whose win count we'd like.
      * @return an int of the number of games won.
